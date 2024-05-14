@@ -72,9 +72,9 @@ class Server(BaseServer):
             for left in peers:
                 if (right, left) in self.linkstats:
                     up = round(self.linkstats[(right, left)] / 3600)
-                    print(f'"{left}" -- "{right}" [label="{up} hours"];')
+                    print(f'"{right}" -- "{left}" [label="{up} hours"];')
                     continue
-                print(f'"{left}" -- "{right}";')
+                print(f'"{right}" -- "{left}";')
 
         now = datetime.datetime.now(datetime.timezone.utc)
         delta = (now - self.starttime).seconds
