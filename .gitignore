@@ -1,0 +1,8 @@
+*.json
+*.db
+*.pyc
+__pycache__/
+*.db-journal
+*journal
+env
+
