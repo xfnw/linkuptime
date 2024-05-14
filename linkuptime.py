@@ -50,10 +50,10 @@ class Server(BaseServer):
             await self.send(build("STATS", ["l", name]))
 
     async def on_211(self, line):
-        [_, left, _, _, _, _, _, uptime, *_] = line.params
+        [_, left, _, _, _, _, _, uptime] = line.params
         right = line.hostmask.nickname
 
-        self.linkstats[(right, left)] = int(uptime)
+        self.linkstats[(right, left)] = int(uptime.split(' ')[0])
 
     async def on_219(self, line):
         if line.params[1] == "l":
