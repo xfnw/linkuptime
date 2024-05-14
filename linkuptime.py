@@ -31,6 +31,7 @@ class Server(BaseServer):
 
     async def on_001(self, line):
         eprint(f"connected to {self.isupport.network}")
+        self.starttime = datetime.datetime.now(datetime.timezone.utc)
         await self.send_raw("LINKS")
 
     async def on_364(self, line):
@@ -53,7 +54,7 @@ class Server(BaseServer):
         [_, left, _, _, _, _, _, uptime] = line.params
         right = line.hostmask.nickname
 
-        self.linkstats[(right, left)] = int(uptime.split(' ')[0])
+        self.linkstats[(right, left)] = int(uptime.split(" ")[0])
 
     async def on_219(self, line):
         if line.params[1] == "l":
@@ -75,8 +76,11 @@ class Server(BaseServer):
                     continue
                 print(f'"{left}" -- "{right}";')
 
-        time = datetime.datetime.now().replace(microsecond=0).isoformat()
-        print('_curtime [label="generated ' + time + '"; shape="box"]}')
+        now = datetime.datetime.now(datetime.timezone.utc)
+        delta = (now - self.starttime).seconds
+        now = now.strftime("%Y-%m-%d %H:%M:%SZ")
+        print(f'"generated {now}\\n{delta} seconds elapsed" [shape="box"];')
+        print("}")
 
 
 class Bot(BaseBot):
