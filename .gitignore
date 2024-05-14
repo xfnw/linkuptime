@@ -1,5 +1,7 @@
 *.json
 *.db
+*.png
+*.svg
 *.pyc
 __pycache__/
 *.db-journal
