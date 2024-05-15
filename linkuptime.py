@@ -13,6 +13,25 @@ def eprint(*args, **rawr):
     print(*args, file=sys.stderr, **rawr)
 
 
+def display(secs):
+    (o, unit) = duration_simplify(secs)
+    return f"{o} {unit}{'s' if o!=1 else ''}"
+
+
+def duration_simplify(t):
+    if t >= 604800:
+        t //= 604800
+        return (t, "week")
+    if t >= 86400:
+        t //= 86400
+        return (t, "day")
+    if t >= 3600:
+        t //= 3600
+        return (t, "hour")
+    t //= 60
+    return (t, "minute")
+
+
 class Server(BaseServer):
     def __init__(self, bot, name):
         super().__init__(bot, name)
@@ -71,8 +90,8 @@ class Server(BaseServer):
         for right, peers in self.linkconns.items():
             for left in peers:
                 if (right, left) in self.linkstats:
-                    up = round(self.linkstats[(right, left)] / 3600)
-                    print(f'"{right}" -- "{left}" [label="{up} hours"];')
+                    up = display(self.linkstats[(right, left)])
+                    print(f'"{right}" -- "{left}" [label="{up}"];')
                     continue
                 print(f'"{right}" -- "{left}";')
 
