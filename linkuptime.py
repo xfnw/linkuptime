@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import asyncio, datetime, sys, re
+import argparse, asyncio, datetime, sys, re
 
 from irctokens import build
 from ircrobots import Bot as BaseBot
@@ -34,11 +34,12 @@ def duration_simplify(t):
 
 
 class Server(BaseServer):
-    def __init__(self, bot, name):
+    def __init__(self, bot, name, darkmode=False):
         super().__init__(bot, name)
         self.linkconns = {}
         self.linkstats = {}
         self.statlcount = 0
+        self.darkmode = darkmode
 
     async def line_read(self, line):
         eprint(f"{self.name} < {line.format()}")
@@ -87,7 +88,12 @@ class Server(BaseServer):
 
     async def generate_output(self):
         print("graph u {")
-        print("edge [penwidth=2];")
+        if self.darkmode:
+            print("bgcolor = black;")
+            print('node [color=white;fontcolor=white;fontname="Comic Sans MS"];')
+            print('edge [penwidth=2;fontcolor=white;fontname="Comic Sans MS"];')
+        else:
+            print("edge [penwidth=2];")
 
         for right, peers in self.linkconns.items():
             for left in peers:
@@ -105,12 +111,16 @@ class Server(BaseServer):
 
 
 class Bot(BaseBot):
+    def __init__(self, darkmode=False):
+        super().__init__()
+        self.darkmode = darkmode
+
     def create_server(self, name: str):
-        return Server(self, name)
+        return Server(self, name, darkmode=self.darkmode)
 
 
-async def connect(host):
-    bot = Bot()
+async def connect(host, darkmode=False):
+    bot = Bot(darkmode=darkmode)
     params = ConnectionParams("linkuptime", host, 6697)
     await bot.add_server("yip", params)
 
@@ -118,8 +128,13 @@ async def connect(host):
 
 
 def main():
+    parser = argparse.ArgumentParser("irc link uptime visualizer")
+    parser.add_argument("host")
+    parser.add_argument("-d", help="enable dark mode", action="store_true")
+    args = parser.parse_args()
+
     try:
-        asyncio.run(connect(sys.argv[1]))
+        asyncio.run(connect(args.host, darkmode=args.d))
     except RuntimeError:
         pass
 
