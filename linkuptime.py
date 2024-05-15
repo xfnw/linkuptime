@@ -96,8 +96,12 @@ async def connect(host):
     await bot.run()
 
 
-if __name__ == "__main__":
+def main():
     try:
         asyncio.run(connect(sys.argv[1]))
     except RuntimeError:
         pass
+
+
+if __name__ == "__main__":
+    main()
