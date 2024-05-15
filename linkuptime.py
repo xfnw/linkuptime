@@ -14,8 +14,9 @@ def eprint(*args, **rawr):
 
 
 def display(secs):
+    hue = 0.3 - 0.3 * 0.999998**secs
     (o, unit) = duration_simplify(secs)
-    return f"{o} {unit}{'s' if o!=1 else ''}"
+    return (f"{o} {unit}{'s' if o!=1 else ''}", hue)
 
 
 def duration_simplify(t):
@@ -90,8 +91,8 @@ class Server(BaseServer):
         for right, peers in self.linkconns.items():
             for left in peers:
                 if (right, left) in self.linkstats:
-                    up = display(self.linkstats[(right, left)])
-                    print(f'"{right}" -- "{left}" [label="{up}"];')
+                    (up, hue) = display(self.linkstats[(right, left)])
+                    print(f'"{right}" -- "{left}" [label="{up}";color="{hue},1,.8"];')
                     continue
                 print(f'"{right}" -- "{left}";')
 
