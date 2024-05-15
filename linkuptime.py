@@ -83,11 +83,9 @@ class Server(BaseServer):
         if self.statlcount >= len(self.linkconns):
             await self.generate_output()
             await self.send_raw("QUIT :nuzzles u")
-            loop = asyncio.get_running_loop()
-            loop.stop()
 
     async def generate_output(self):
-        print("graph u {")
+        print('graph "' + self.name + '" {')
         if self.darkmode:
             print("bgcolor = black;")
             print('node [color=white;fontcolor=white;fontname="Comic Sans MS"];')
@@ -118,11 +116,18 @@ class Bot(BaseBot):
     def create_server(self, name: str):
         return Server(self, name, darkmode=self.darkmode)
 
+    async def disconnected(self, server):
+        if server.name in self.servers:
+            del self.servers[server.name]
+        if not self.servers:
+            loop = asyncio.get_running_loop()
+            loop.stop()
+
 
 async def connect(host, darkmode=False):
     bot = Bot(darkmode=darkmode)
     params = ConnectionParams("linkuptime", host, 6697)
-    await bot.add_server("yip", params)
+    await bot.add_server("uppies", params)
 
     await bot.run()
 
