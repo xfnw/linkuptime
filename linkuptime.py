@@ -34,12 +34,13 @@ def duration_simplify(t):
 
 
 class Server(BaseServer):
-    def __init__(self, bot, name, darkmode=False):
+    def __init__(self, bot, name, darkmode=False, waitoper=False):
         super().__init__(bot, name)
         self.linkconns = {}
         self.linkstats = {}
         self.statlcount = 0
         self.darkmode = darkmode
+        self.waitoper = waitoper
 
     async def line_read(self, line):
         eprint(f"{self.name} < {line.format()}")
@@ -50,10 +51,18 @@ class Server(BaseServer):
     async def line_send(self, line):
         eprint(f"{self.name} > {line.format()}")
 
-    async def on_001(self, line):
-        eprint(f"connected to {self.isupport.network}")
+    async def begin(self):
         self.starttime = datetime.datetime.now(datetime.timezone.utc)
         await self.send_raw("LINKS")
+
+    async def on_001(self, line):
+        eprint(f"connected to {self.isupport.network}")
+        if not self.waitoper:
+            await self.begin()
+
+    async def on_381(self, line):
+        if self.waitoper:
+            await self.begin()
 
     async def on_364(self, line):
         [_, left, right, *_] = line.params
@@ -109,12 +118,13 @@ class Server(BaseServer):
 
 
 class Bot(BaseBot):
-    def __init__(self, darkmode=False):
+    def __init__(self, darkmode=False, waitoper=False):
         super().__init__()
         self.darkmode = darkmode
+        self.waitoper = waitoper
 
     def create_server(self, name: str):
-        return Server(self, name, darkmode=self.darkmode)
+        return Server(self, name, darkmode=self.darkmode, waitoper=self.waitoper)
 
     async def disconnected(self, server):
         if server.name in self.servers:
@@ -124,8 +134,8 @@ class Bot(BaseBot):
             loop.stop()
 
 
-async def connect(host, darkmode=False):
-    bot = Bot(darkmode=darkmode)
+async def connect(host, darkmode=False, waitoper=False):
+    bot = Bot(darkmode=darkmode, waitoper=waitoper)
     params = ConnectionParams("linkuptime", host, 6697)
     await bot.add_server("uppies", params)
 
@@ -136,10 +146,11 @@ def main():
     parser = argparse.ArgumentParser("irc link uptime visualizer")
     parser.add_argument("host")
     parser.add_argument("-d", help="enable dark mode", action="store_true")
+    parser.add_argument("-o", help="wait for RPL_YOUREOPER", action="store_true")
     args = parser.parse_args()
 
     try:
-        asyncio.run(connect(args.host, darkmode=args.d))
+        asyncio.run(connect(args.host, darkmode=args.d, waitoper=args.o))
     except RuntimeError:
         pass
 
