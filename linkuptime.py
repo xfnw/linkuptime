@@ -87,6 +87,7 @@ class Server(BaseServer):
 
     async def generate_output(self):
         print("graph u {")
+        print("edge [penwidth=2];")
 
         for right, peers in self.linkconns.items():
             for left in peers:
