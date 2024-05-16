@@ -143,7 +143,7 @@ async def connect(host, darkmode=False, waitoper=False):
 
 
 def main():
-    parser = argparse.ArgumentParser("irc link uptime visualizer")
+    parser = argparse.ArgumentParser()
     parser.add_argument("host")
     parser.add_argument("-d", help="enable dark mode", action="store_true")
     parser.add_argument("-o", help="wait for RPL_YOUREOPER", action="store_true")
