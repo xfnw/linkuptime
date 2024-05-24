@@ -20,10 +20,10 @@
             hash = "sha256-u0/6hrsS/vGxfSK/oc3ou+O6EeXJ6nfpuJRpUbP7yho=";
           };
         });
-        ircrobots = pp.ircrobots.override { anyio = anyio; };
+        ircrobots = pp.ircrobots.override { inherit anyio; };
       in rec {
         packages."${name}" = pp.buildPythonApplication {
-          name = name;
+          inherit name;
           propagatedBuildInputs = [ ircrobots ];
           src = ./.;
         };
