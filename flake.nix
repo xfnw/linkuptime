@@ -22,10 +22,14 @@
         });
         ircrobots = pp.ircrobots.override { inherit anyio; };
       in rec {
-        packages."${name}" = pp.buildPythonApplication {
-          inherit name;
-          propagatedBuildInputs = [ ircrobots ];
-          src = ./.;
+        packages = {
+          "${name}" = pp.buildPythonPackage {
+            inherit name;
+            propagatedBuildInputs = [ ircrobots ];
+            src = ./.;
+            meta.mainProgram = name;
+          };
+          importable = pkgs.python3.withPackages (p: [ packages."${name}" ]);
         };
 
         defaultPackage = packages."${name}";
