@@ -4,7 +4,10 @@
 *.svg
 *.pyc
 __pycache__/
+target/
 *.db-journal
 *journal
+\#*#
+.#*
 env
 
