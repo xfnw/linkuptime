@@ -113,12 +113,12 @@ edge [penwidth=2;fontcolor=white;fontname="Comic Sans MS"];
             if let Some(start) = *self.started.lock().await {
                 writeln!(
                     out,
-                    r#""{} hops between {} and {}\ngenerated {}\n{} seconds elapsed" [shape=box];"#,
+                    r#""longest path {} hops, from {} to {}\n{} seconds elapsed, {}" [shape=box];"#,
                     d.0,
                     d.1,
                     d.2,
-                    time_now(),
                     start.elapsed().as_secs(),
+                    time_now(),
                 )
                 .unwrap();
             }
