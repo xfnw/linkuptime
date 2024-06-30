@@ -152,6 +152,7 @@ edge [penwidth=2;fontcolor=white;fontname="Comic Sans MS"];
             match line.command.as_str() {
                 "PING" => self.handle_ping(line).await?,
                 "001" => self.handle_001(line).await?,
+                "433" => self.handle_433(line).await?,
                 "381" => self.handle_381(line).await?,
                 "364" => self.handle_364(line).await?,
                 "365" => self.handle_365(line).await?,
@@ -173,6 +174,18 @@ edge [penwidth=2;fontcolor=white;fontname="Comic Sans MS"];
         eprintln!("connected!");
         self.begin().await?;
         Ok(())
+    }
+    /// nickname in use
+    async fn handle_433(&self, line: Line) -> Result<(), BotError> {
+        let mut nick = line.arguments[1].clone();
+        nick.push(b'_');
+        self.write_line(&Line {
+            tags: None,
+            source: None,
+            command: "NICK".to_string(),
+            arguments: vec![nick],
+        })
+        .await
     }
     /// youreoper
     async fn handle_381(&self, _line: Line) -> Result<(), BotError> {
