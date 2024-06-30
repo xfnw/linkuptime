@@ -25,6 +25,9 @@ macro_rules! utf8ify {
 
 #[derive(Debug, Parser)]
 struct Opt {
+    /// wait for RPL_YOUREOPER
+    #[arg(short = 'o')]
+    wait_oper: bool,
     #[arg(required = true)]
     addr: String,
 }
@@ -37,10 +40,11 @@ struct Bot {
     uptimes: Mutex<BTreeMap<(usize, usize), usize>>,
     received: Mutex<usize>,
     started: Mutex<Option<Instant>>,
+    wait_oper: bool,
 }
 
 impl Bot {
-    async fn connect(addr: &str, nick: &str) -> io::Result<Self> {
+    async fn connect(addr: &str, nick: &str, wait_oper: bool) -> io::Result<Self> {
         let stream = TcpStream::connect(addr).await?;
         let (read, mut write) = io::split(stream);
         let read = Mutex::new(BufReader::new(read));
@@ -56,6 +60,7 @@ impl Bot {
             uptimes: Mutex::new(BTreeMap::new()),
             received: Mutex::new(0),
             started: Mutex::new(None),
+            wait_oper,
         })
     }
     async fn write_line(&self, line: &Line) -> Result<(), BotError> {
@@ -172,8 +177,11 @@ edge [penwidth=2;color=white;fontcolor=white;fontname="Comic Sans MS"];
     /// welcome
     async fn handle_001(&self, _line: Line) -> Result<(), BotError> {
         eprintln!("connected!");
-        self.begin().await?;
-        Ok(())
+        if self.wait_oper {
+            eprintln!("waiting for oper...");
+            return Ok(());
+        }
+        self.begin().await
     }
     /// nickname in use
     async fn handle_433(&self, line: Line) -> Result<(), BotError> {
@@ -189,6 +197,9 @@ edge [penwidth=2;color=white;fontcolor=white;fontname="Comic Sans MS"];
     }
     /// youreoper
     async fn handle_381(&self, _line: Line) -> Result<(), BotError> {
+        if self.wait_oper {
+            self.begin().await?;
+        }
         Ok(())
     }
     /// links reply
@@ -313,7 +324,9 @@ fn duration_simplify(secs: usize) -> (usize, &'static str) {
 #[tokio::main]
 async fn main() {
     let args = Opt::parse();
-    let bot = Bot::connect(&args.addr, "linkuptime").await.unwrap();
+    let bot = Bot::connect(&args.addr, "linkuptime", args.wait_oper)
+        .await
+        .unwrap();
     bot.run().await.unwrap();
     println!("{}", bot.finish().await)
 }
