@@ -153,7 +153,6 @@ edge [penwidth=2;color=white;fontcolor=white;fontname="Comic Sans MS"];
             }
 
             let line = irctokens::Line::tokenise(&buf).map_err(BotError::IrcError)?;
-            eprintln!("{:?}", line);
             match line.command.as_str() {
                 "PING" => self.handle_ping(line).await?,
                 "001" => self.handle_001(line).await?,
