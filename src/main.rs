@@ -131,6 +131,22 @@ edge [penwidth=2;color=white;fontcolor=white;fontname="Comic Sans MS"];
         out.push('}');
         out
     }
+    async fn inc_stats(&self) -> Result<(), BotError> {
+        {
+            let mut rec = self.received.lock().await;
+            *rec += 1;
+            if *rec < self.rlinks.lock().await.len() {
+                return Ok(());
+            }
+        }
+        self.write_line(&Line {
+            tags: None,
+            source: None,
+            command: "QUIT".to_string(),
+            arguments: vec![b"meow meow meow meow".to_vec()],
+        })
+        .await
+    }
     async fn run(&self) -> Result<(), BotError> {
         let mut buf = Vec::with_capacity(512);
         loop {
@@ -162,6 +178,7 @@ edge [penwidth=2;color=white;fontcolor=white;fontname="Comic Sans MS"];
                 "365" => self.handle_365(line).await?,
                 "211" => self.handle_211(line).await?,
                 "219" => self.handle_219(line).await?,
+                "481" => self.handle_481(line).await?,
                 _ => (),
             };
 
@@ -269,20 +286,15 @@ edge [penwidth=2;color=white;fontcolor=white;fontname="Comic Sans MS"];
         if stype != b"l" {
             return Ok(());
         }
-        {
-            let mut rec = self.received.lock().await;
-            *rec += 1;
-            if *rec < self.rlinks.lock().await.len() {
-                return Ok(());
-            }
-        }
-        self.write_line(&Line {
-            tags: None,
-            source: None,
-            command: "QUIT".to_string(),
-            arguments: vec![b"meow meow meow meow".to_vec()],
-        })
-        .await
+        self.inc_stats().await
+    }
+    /// no privileges
+    async fn handle_481(&self, _line: Line) -> Result<(), BotError> {
+        // assume that a no permissions message is probably a response
+        // to stats, since there is not really any other reason we
+        // would get this unless links is not allowed (in which case
+        // this entire tool is pretty useless)
+        self.inc_stats().await
     }
 }
 
