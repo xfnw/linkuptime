@@ -87,7 +87,7 @@ impl Bot {
         let mut out = r#"graph L {
 bgcolor = black;
 node [color=white;fontcolor=white;fontname="Comic Sans MS"];
-edge [penwidth=2;color=white;fontcolor=white;fontname="Comic Sans MS"];
+edge [penwidth=2;color=gray;fontcolor=white;fontname="Comic Sans MS"];
 "#
         .to_string();
         let links = self.links.lock().await;

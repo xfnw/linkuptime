@@ -98,7 +98,7 @@ class Server(BaseServer):
         if self.darkmode:
             print("bgcolor = black;")
             print('node [color=white;fontcolor=white;fontname="Comic Sans MS"];')
-            print('edge [penwidth=2;color=white;fontcolor=white;fontname="Comic Sans MS"];')
+            print('edge [penwidth=2;color=gray;fontcolor=white;fontname="Comic Sans MS"];')
         else:
             print("edge [penwidth=2];")
 
