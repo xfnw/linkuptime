@@ -25,6 +25,9 @@ macro_rules! utf8ify {
 
 #[derive(Debug, Parser)]
 struct Opt {
+    /// disable checking stats
+    #[arg(short)]
+    no_stats: bool,
     /// wait for RPL_YOUREOPER
     #[arg(short = 'o')]
     wait_oper: bool,
@@ -41,10 +44,11 @@ struct Bot {
     received: Mutex<usize>,
     started: Mutex<Option<Instant>>,
     wait_oper: bool,
+    no_stats: bool,
 }
 
 impl Bot {
-    async fn connect(addr: &str, nick: &str, wait_oper: bool) -> io::Result<Self> {
+    async fn connect(addr: &str, nick: &str, wait_oper: bool, no_stats: bool) -> io::Result<Self> {
         let stream = TcpStream::connect(addr).await?;
         let (read, mut write) = io::split(stream);
         let read = Mutex::new(BufReader::new(read));
@@ -61,6 +65,7 @@ impl Bot {
             received: Mutex::new(0),
             started: Mutex::new(None),
             wait_oper,
+            no_stats,
         })
     }
     async fn write_line(&self, line: &Line) -> Result<(), BotError> {
@@ -248,6 +253,18 @@ edge [penwidth=2;color=gray;fontcolor=white;fontname="Comic Sans MS"];
         let links = self.links.lock().await;
         let (tree, names) = links.tree();
         eprintln!("{:?} {:?}", tree, names);
+
+        if self.no_stats {
+            self.write_line(&Line {
+                tags: None,
+                source: None,
+                command: "QUIT".to_string(),
+                arguments: vec![b"mow mow mow".to_vec()],
+            })
+            .await?;
+            return Ok(());
+        }
+
         for right in self.rlinks.lock().await.keys() {
             self.write_line(&Line {
                 tags: None,
@@ -335,7 +352,7 @@ fn duration_simplify(secs: usize) -> (usize, &'static str) {
 #[tokio::main]
 async fn main() {
     let args = Opt::parse();
-    let bot = Bot::connect(&args.addr, "linkuptime", args.wait_oper)
+    let bot = Bot::connect(&args.addr, "linkuptime", args.wait_oper, args.no_stats)
         .await
         .unwrap();
     bot.run().await.unwrap();
