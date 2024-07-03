@@ -253,8 +253,9 @@ edge [penwidth=2;color=gray;fontcolor=white;fontname="Comic Sans MS"];
         let links = self.links.lock().await;
         let (tree, names) = links.tree();
         eprintln!("{:?} {:?}", tree, names);
+        let rlinks = self.rlinks.lock().await;
 
-        if self.no_stats {
+        if self.no_stats || rlinks.is_empty() {
             self.write_line(&Line {
                 tags: None,
                 source: None,
@@ -265,7 +266,7 @@ edge [penwidth=2;color=gray;fontcolor=white;fontname="Comic Sans MS"];
             return Ok(());
         }
 
-        for right in self.rlinks.lock().await.keys() {
+        for right in rlinks.keys() {
             self.write_line(&Line {
                 tags: None,
                 source: None,
