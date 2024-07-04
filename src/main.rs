@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
-use clap::Parser;
 use diameter::SpanningTree;
+use gumdrop::Options;
 use irctokens::Line;
 use std::{
     collections::BTreeMap,
@@ -23,16 +23,20 @@ macro_rules! utf8ify {
     };
 }
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Options)]
 struct Opt {
     /// disable checking stats
-    #[arg(short)]
+    #[options(no_long)]
     no_stats: bool,
     /// wait for RPL_YOUREOPER
-    #[arg(short = 'o')]
+    #[options(no_long, short = 'o')]
     wait_oper: bool,
-    #[arg(required = true)]
+    /// the address and port to connect to
+    #[options(free, required)]
     addr: String,
+    /// print help
+    #[options()]
+    help: bool,
 }
 
 struct Bot {
@@ -352,7 +356,7 @@ fn duration_simplify(secs: usize) -> (usize, &'static str) {
 
 #[tokio::main]
 async fn main() {
-    let args = Opt::parse();
+    let args = Opt::parse_args_default_or_exit();
     let bot = Bot::connect(&args.addr, "linkuptime", args.wait_oper, args.no_stats)
         .await
         .unwrap();
