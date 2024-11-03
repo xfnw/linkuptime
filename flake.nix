@@ -1,10 +1,11 @@
 {
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
+    naersk.url = "github:nix-community/naersk";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   };
 
-  outputs = { self, flake-utils, nixpkgs }:
+  outputs = { self, flake-utils, naersk, nixpkgs }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         name = "linkuptime";
@@ -21,6 +22,7 @@
           };
         });
         ircrobots = pp.ircrobots.override { inherit anyio; };
+        naersk' = pkgs.callPackage naersk { };
       in rec {
         packages = {
           "${name}" = pp.buildPythonPackage {
@@ -30,11 +32,15 @@
             meta.mainProgram = name;
           };
           importable = pkgs.python3.withPackages (p: [ packages."${name}" ]);
+          riir = naersk'.buildPackage { src = ./.; };
         };
 
         defaultPackage = packages."${name}";
 
-        devShell = pkgs.mkShell { buildInputs = [ pkgs.python3 ircrobots ]; };
+        devShell = pkgs.mkShell {
+          buildInputs =
+            [ ircrobots pkgs.python3 pkgs.rustc pkgs.cargo pkgs.clippy ];
+        };
       });
 }
 
