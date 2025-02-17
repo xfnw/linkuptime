@@ -360,6 +360,13 @@ async fn main() {
     let bot = Bot::connect(&args.addr, "linkuptime", args.wait_oper, args.no_stats)
         .await
         .unwrap();
-    bot.run().await.unwrap();
+    tokio::select! {
+        res = bot.run() => {
+            res.expect("something bad happened");
+        }
+        res = tokio::signal::ctrl_c() => {
+            res.expect("signals borked");
+        }
+    };
     println!("{}", bot.finish().await)
 }
