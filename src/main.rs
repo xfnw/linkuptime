@@ -5,12 +5,13 @@ use irctokens::Line;
 use std::{
     collections::BTreeMap,
     fmt::Write,
-    time::{Instant, SystemTime},
+    time::{Duration, Instant, SystemTime},
 };
 use tokio::{
     io::{self, AsyncBufReadExt, AsyncWriteExt, BufReader, ReadHalf, WriteHalf},
     net::TcpStream,
     sync::Mutex,
+    time::sleep,
 };
 
 macro_rules! utf8ify {
@@ -31,6 +32,9 @@ struct Opt {
     /// wait for RPL_YOUREOPER
     #[options(no_long, short = 'o')]
     wait_oper: bool,
+    /// seconds until giving up
+    #[options(no_long)]
+    timeout: Option<u64>,
     /// the address and port to connect to
     #[options(free, required)]
     addr: String,
@@ -367,6 +371,7 @@ async fn main() {
         res = tokio::signal::ctrl_c() => {
             res.expect("signals borked");
         }
+        () = sleep(Duration::from_secs(args.timeout.unwrap_or(0))), if args.timeout.is_some() => {}
     };
     println!("{}", bot.finish().await)
 }
