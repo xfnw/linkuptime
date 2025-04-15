@@ -35,6 +35,9 @@ struct Opt {
     /// seconds until giving up
     #[options(no_long)]
     timeout: Option<u64>,
+    /// use a different nick
+    #[options(no_long, short = 'N')]
+    nick: Option<String>,
     /// the address and port to connect to
     #[options(free, required)]
     addr: String,
@@ -361,9 +364,14 @@ fn duration_simplify(secs: usize) -> (usize, &'static str) {
 #[tokio::main]
 async fn main() {
     let args = Opt::parse_args_default_or_exit();
-    let bot = Bot::connect(&args.addr, "linkuptime", args.wait_oper, args.no_stats)
-        .await
-        .unwrap();
+    let bot = Bot::connect(
+        &args.addr,
+        args.nick.as_deref().unwrap_or("luptime"),
+        args.wait_oper,
+        args.no_stats,
+    )
+    .await
+    .unwrap();
     tokio::select! {
         res = bot.run() => {
             res.expect("something bad happened");
