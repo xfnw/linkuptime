@@ -27,8 +27,10 @@
         packages = {
           "${name}" = pp.buildPythonPackage {
             inherit name;
-            propagatedBuildInputs = [ ircrobots ];
             src = ./.;
+            propagatedBuildInputs = [ ircrobots ];
+            pyproject = true;
+            build-system = [ pp.setuptools ];
             meta.mainProgram = name;
           };
           importable = pkgs.python3.withPackages (p: [ packages."${name}" ]);
